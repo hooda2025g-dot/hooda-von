@@ -265,3 +265,55 @@ body {
         font-size: 2rem;
     }
 }
+
+/* تصميم اسم المطور - زجاجي شفاف */
+.developer-credit {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 1000;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.developer-credit:hover {
+    opacity: 1;
+    transform: translateY(-5px);
+}
+
+.glass-effect {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 12px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgb(99, 97, 97);
+    font-size: 0.9rem;
+}
+
+.glass-effect i {
+    color: #806b75;
+    font-size: 1.2rem;
+}
+
+.glass-effect strong {
+    color: #000000;
+    font-weight: bold;
+}
+
+@media (max-width: 768px) {
+    .developer-credit {
+        bottom: 10px;
+        left: 10px;
+    }
+    
+    .glass-effect {
+        padding: 8px 15px;
+        font-size: 0.8rem;
+    }
+}
