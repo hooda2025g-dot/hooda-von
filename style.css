@@ -1,0 +1,267 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+    color: #333;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    padding: 20px;
+}
+
+/* شاشة الترحيب */
+.welcome-screen {
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    transition: all 0.5s ease;
+}
+
+.welcome-screen h1 {
+    color: #e84393;
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-screen p {
+    font-size: 1.3rem;
+    color: #636e72;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.welcome-screen .hearts {
+    font-size: 2rem;
+    color: #fd79a8;
+    margin: 20px 0;
+    animation: float 3s ease-in-out infinite;
+}
+
+.btn {
+    background: linear-gradient(to right, #e84393, #fd79a8);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(232, 67, 147, 0.4);
+    font-weight: bold;
+}
+
+.btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(232, 67, 147, 0.6);
+}
+
+/* شاشة كلمة السر */
+.password-screen {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: none;
+}
+
+.password-screen h2 {
+    color: #e84393;
+    font-size: 2.2rem;
+    margin-bottom: 15px;
+}
+
+.password-screen p {
+    color: #636e72;
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+}
+
+.input-container {
+    position: relative;
+    margin: 30px 0;
+}
+
+.password-input {
+    width: 100%;
+    padding: 18px 20px;
+    border: 2px solid #dfe6e9;
+    border-radius: 50px;
+    font-size: 1.2rem;
+    outline: none;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.password-input:focus {
+    border-color: #e84393;
+    box-shadow: 0 0 0 3px rgba(232, 67, 147, 0.2);
+}
+
+.password-btn {
+    background: linear-gradient(to right, #0984e3, #00cec9);
+    margin-top: 10px;
+}
+
+.error-message {
+    color: #d63031;
+    margin-top: 15px;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.show-error {
+    opacity: 1;
+}
+
+/* شاشة الرسالة */
+.message-screen {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    display: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.message-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.message-header h2 {
+    color: #e84393;
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.message-header p {
+    color: #636e72;
+    font-size: 1.2rem;
+}
+
+.message-content {
+    background-color: #fff9fc;
+    border-radius: 15px;
+    padding: 30px;
+    border-left: 5px solid #e84393;
+    margin: 20px 0;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.message-content p {
+    font-size: 1.4rem;
+    line-height: 1.8;
+    color: #2d3436;
+    text-align: center;
+    font-style: italic;
+}
+
+.signature {
+    text-align: left;
+    margin-top: 30px;
+    font-weight: bold;
+    color: #e84393;
+    font-size: 1.3rem;
+}
+
+/* الأنيميشن */
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heartbeat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+@keyframes floatHearts {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; }
+}
+
+.animated-heart {
+    position: absolute;
+    font-size: 24px;
+    color: #e84393;
+    opacity: 0;
+    z-index: 1;
+}
+
+.message-animation {
+    animation: fadeIn 1.5s ease-out;
+}
+
+.heartbeat {
+    animation: heartbeat 1.5s infinite;
+    display: inline-block;
+    margin: 0 10px;
+    color: #e84393;
+}
+
+/* عناصر التصميم */
+.floating-hearts {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.back-btn {
+    background: linear-gradient(to right, #636e72, #b2bec3);
+    margin-top: 20px;
+    padding: 12px 30px;
+    font-size: 1rem;
+}
+
+/* التكيف مع الشاشات الصغيرة */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .welcome-screen, .password-screen, .message-screen {
+        padding: 25px;
+    }
+    
+    .welcome-screen h1 {
+        font-size: 2.2rem;
+    }
+    
+    .message-content p {
+        font-size: 1.2rem;
+    }
+    
+    .message-header h2 {
+        font-size: 2rem;
+    }
+}
