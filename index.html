@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رسالة سرية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        /* شاشة الترحيب */
+        .welcome-screen {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.5s ease;
+        }
+
+        .welcome-screen h1 {
+            color: #e84393;
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome-screen p {
+            font-size: 1.3rem;
+            color: #636e72;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .welcome-screen .hearts {
+            font-size: 2rem;
+            color: #fd79a8;
+            margin: 20px 0;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .btn {
+            background: linear-gradient(to right, #e84393, #fd79a8);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(232, 67, 147, 0.4);
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(232, 67, 147, 0.6);
+        }
+
+        /* شاشة كلمة السر */
+        .password-screen {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .password-screen h2 {
+            color: #e84393;
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+        }
+
+        .password-screen p {
+            color: #636e72;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .input-container {
+            position: relative;
+            margin: 30px 0;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 18px 20px;
+            border: 2px solid #dfe6e9;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            outline: none;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .password-input:focus {
+            border-color: #e84393;
+            box-shadow: 0 0 0 3px rgba(232, 67, 147, 0.2);
+        }
+
+        .password-btn {
+            background: linear-gradient(to right, #0984e3, #00cec9);
+            margin-top: 10px;
+        }
+
+        .error-message {
+            color: #d63031;
+            margin-top: 15px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .show-error {
+            opacity: 1;
+        }
+
+        /* شاشة الرسالة */
+        .message-screen {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .message-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .message-header h2 {
+            color: #e84393;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .message-header p {
+            color: #636e72;
+            font-size: 1.2rem;
+        }
+
+        .message-content {
+            background-color: #fff9fc;
+            border-radius: 15px;
+            padding: 30px;
+            border-left: 5px solid #e84393;
+            margin: 20px 0;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .message-content p {
+            font-size: 1.4rem;
+            line-height: 1.8;
+            color: #2d3436;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .signature {
+            text-align: left;
+            margin-top: 30px;
+            font-weight: bold;
+            color: #e84393;
+            font-size: 1.3rem;
+        }
+
+        /* الأنيميشن */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes floatHearts {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; }
+        }
+
+        .animated-heart {
+            position: absolute;
+            font-size: 24px;
+            color: #e84393;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        .message-animation {
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        .heartbeat {
+            animation: heartbeat 1.5s infinite;
+            display: inline-block;
+            margin: 0 10px;
+            color: #e84393;
+        }
+
+        /* عناصر التصميم */
+        .floating-hearts {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .back-btn {
+            background: linear-gradient(to right, #636e72, #b2bec3);
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 1rem;
+        }
+
+        /* التكيف مع الشاشات الصغيرة */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .welcome-screen, .password-screen, .message-screen {
+                padding: 25px;
+            }
+            
+            .welcome-screen h1 {
+                font-size: 2.2rem;
+            }
+            
+            .message-content p {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- شاشة الترحيب -->
+        <div class="welcome-screen" id="welcomeScreen">
+            <div class="hearts">
+                <i class="fas fa-heart heartbeat"></i>
+                <i class="fas fa-heart heartbeat"></i>
+                <i class="fas fa-heart heartbeat"></i>
+            </div>
+            <h1>أهلاً وسهلاً بك!</h1>
+            <p>هذا الموقع يحتوي على رسالة خاصة جداً موجهة لك</p>
+            <p>ستحتاج إلى كلمة السر الصحيحة لقراءة هذه الرسالة</p>
+            <div class="hearts">
+                <i class="fas fa-heart heartbeat"></i>
+                <i class="fas fa-heart heartbeat"></i>
+                <i class="fas fa-heart heartbeat"></i>
+            </div>
+            <button class="btn" id="enterBtn">ادخل إلى الرسالة</button>
+        </div>
+
+        <!-- شاشة كلمة السر -->
+        <div class="password-screen" id="passwordScreen">
+            <h2>كلمة السر المطلوبة</h2>
+            <p>أدخل كلمة السر التي أعطيت لك للدخول إلى الرسالة</p>
+            <div class="input-container">
+                <input type="text" class="password-input" id="passwordInput" placeholder="أدخل كلمة السر هنا...">
+            </div>
+            <button class="btn password-btn" id="submitPassword">عرض الرسالة</button>
+            <p class="error-message" id="errorMessage">كلمة السر غير صحيحة، حاول مرة أخرى!</p>
+            <button class="btn back-btn" id="backToWelcome">العودة للترحيب</button>
+        </div>
+
+        <!-- شاشة الرسالة -->
+        <div class="message-screen" id="messageScreen">
+            <div class="floating-hearts" id="floatingHearts"></div>
+            <div class="message-header">
+                <h2 id="messageTitle">رسالة خاصة لـ <span id="recipientName"></span></h2>
+                <p>إلى أعز الناس على قلبي...</p>
+            </div>
+            <div class="message-content message-animation">
+                <p id="messageText"></p>
+                <div class="signature">مع كل الحب،<br>شخص يحبك كثيراً</div>
+            </div>
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn back-btn" id="backToPassword">العودة لشاشة الدخول</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // عناصر DOM
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const passwordScreen = document.getElementById('passwordScreen');
+        const messageScreen = document.getElementById('messageScreen');
+        const enterBtn = document.getElementById('enterBtn');
+        const submitPasswordBtn = document.getElementById('submitPassword');
+        const passwordInput = document.getElementById('passwordInput');
+        const errorMessage = document.getElementById('errorMessage');
+        const backToWelcomeBtn = document.getElementById('backToWelcome');
+        const backToPasswordBtn = document.getElementById('backToPassword');
+        const floatingHearts = document.getElementById('floatingHearts');
+        const messageText = document.getElementById('messageText');
+        const messageTitle = document.getElementById('messageTitle');
+        const recipientName = document.getElementById('recipientName');
+        
+        // بيانات الرسالة (سيتم ملؤها من الرابط إن وجدت)
+        let messageData = null;
+        let correctPassword = null;
+        
+        // قراءة البيانات من الرابط
+        function getDataFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedData = urlParams.get('data');
+            
+            if (encodedData) {
+                try {
+                    const decodedData = atob(encodedData);
+                    messageData = JSON.parse(decodedData);
+                    correctPassword = messageData.password;
+                    return true;
+                } catch (error) {
+                    console.error('Error decoding data from URL:', error);
+                    return false;
+                }
+            }
+            return false;
+        }
+        
+        // إذا كان هناك بيانات في الرابط، نتخطى شاشة الترحيب ونذهب مباشرة لكلمة السر
+        window.addEventListener('load', function() {
+            const hasData = getDataFromURL();
+            
+            if (hasData) {
+                // نعرض شاشة كلمة السر مباشرة
+                welcomeScreen.style.display = 'none';
+                passwordScreen.style.display = 'block';
+                passwordInput.focus();
+                
+                // نعرض اسم المستلم في شاشة الرسالة
+                if (messageData && messageData.name) {
+                    recipientName.textContent = messageData.name;
+                }
+            }
+        });
+        
+        // الانتقال من شاشة الترحيب إلى شاشة كلمة السر
+        enterBtn.addEventListener('click', function() {
+            welcomeScreen.style.display = 'none';
+            passwordScreen.style.display = 'block';
+            passwordInput.focus();
+        });
+        
+        // العودة من شاشة كلمة السر إلى شاشة الترحيب
+        backToWelcomeBtn.addEventListener('click', function() {
+            passwordScreen.style.display = 'none';
+            welcomeScreen.style.display = 'block';
+            passwordInput.value = '';
+            errorMessage.classList.remove('show-error');
+        });
+        
+        // العودة من شاشة الرسالة إلى شاشة كلمة السر
+        backToPasswordBtn.addEventListener('click', function() {
+            messageScreen.style.display = 'none';
+            passwordScreen.style.display = 'block';
+            passwordInput.value = '';
+            errorMessage.classList.remove('show-error');
+            stopHeartsAnimation();
+        });
+        
+        // التحقق من كلمة السر
+        submitPasswordBtn.addEventListener('click', function() {
+            const userInput = passwordInput.value.trim();
+            
+            if (correctPassword === null) {
+                // إذا لم تكن هناك بيانات من الرابط، نستخدم كلمة السر الافتراضية
+                correctPassword = "حبيبتي";
+            }
+            
+            if (userInput === correctPassword) {
+                // إذا كانت كلمة السر صحيحة
+                passwordScreen.style.display = 'none';
+                messageScreen.style.display = 'block';
+                startHeartsAnimation();
+                
+                // عرض الرسالة إذا كانت موجودة
+                if (messageData && messageData.message) {
+                    messageText.innerHTML = messageData.message.replace(/\n/g, '<br>');
+                } else {
+                    // رسالة افتراضية إذا لم تكن هناك رسالة في البيانات
+                    messageText.innerHTML = "حبيبتي الغالية،<br><br>كلماتي تقف عاجزة عن وصف ما بداخلي من مشاعر تجاهك. أنت النور الذي يضيء حياتي، والفرحة التي تملأ أيامي. كل لحظة أقضيها معك هي كنز ثمين أحتفظ به في قلبي.<br><br>شكراً لأنك دوماً بجانبي، شكراً لأنك تجعلينني شخصاً أفضل، شكراً لأنك أنت.<br><br>أحبك أكثر مما تستطيع الكلمات التعبير عنه، وأتمنى أن نبقى معاً إلى الأبد.";
+                }
+                
+                // إضافة أنيميشن للرسالة
+                const messageContent = document.querySelector('.message-content');
+                messageContent.classList.remove('message-animation');
+                void messageContent.offsetWidth; // إعادة تدفق لإعادة التشغيل
+                messageContent.classList.add('message-animation');
+            } else {
+                // إذا كانت كلمة السر خاطئة
+                errorMessage.classList.add('show-error');
+                passwordInput.style.borderColor = '#d63031';
+                passwordInput.style.boxShadow = '0 0 0 3px rgba(214, 48, 49, 0.2)';
+                
+                // إرجاع اللون الأصلي بعد ثانيتين
+                setTimeout(() => {
+                    passwordInput.style.borderColor = '#dfe6e9';
+                    passwordInput.style.boxShadow = 'none';
+                }, 2000);
+            }
+        });
+        
+        // السماح بإدخال كلمة السر بالضغط على Enter
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                submitPasswordBtn.click();
+            }
+        });
+        
+        // دالة لإنشاء قلوب متحركة في شاشة الرسالة
+        function startHeartsAnimation() {
+            // تنظيف أي قلوب سابقة
+            floatingHearts.innerHTML = '';
+            
+            // إنشاء 15 قلب تتحرك
+            for (let i = 0; i < 15; i++) {
+                createFloatingHeart(i);
+            }
+        }
+        
+        function createFloatingHeart(index) {
+            const heart = document.createElement('div');
+            heart.classList.add('animated-heart');
+            heart.innerHTML = '<i class="fas fa-heart"></i>';
+            
+            // حجم عشوائي للقلب
+            const size = Math.random() * 20 + 15;
+            heart.style.fontSize = `${size}px`;
+            
+            // موقع بداية عشوائي
+            const startPosition = Math.random() * 100;
+            heart.style.left = `${startPosition}%`;
+            
+            // تأخير عشوائي لبدء الحركة
+            const delay = Math.random() * 5;
+            
+            // مدة الحركة
+            const duration = Math.random() * 10 + 10;
+            
+            // تطبيق الأنيميشن
+            heart.style.animation = `floatHearts ${duration}s linear ${delay}s infinite`;
+            
+            // إضافة القلب إلى الحاوية
+            floatingHearts.appendChild(heart);
+            
+            // إزالة القلب بعد انتهاء الأنيميشن وإضافة واحد جديد
+            setTimeout(() => {
+                if (floatingHearts.contains(heart)) {
+                    heart.remove();
+                    createFloatingHeart(index);
+                }
+            }, (duration + delay) * 1000);
+        }
+        
+        // إيقاف أنيميشن القلوب
+        function stopHeartsAnimation() {
+            floatingHearts.innerHTML = '';
+        }
+    </script>
+</body>
+</html>
