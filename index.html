@@ -5,11 +5,322 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>رسالة سرية</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        .welcome-screen {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.5s ease;
+        }
+
+        .welcome-screen h1 {
+            color: #e84393;
+            font-size: 2.8rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome-screen p {
+            font-size: 1.3rem;
+            color: #636e72;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .welcome-screen .hearts {
+            font-size: 2rem;
+            color: #fd79a8;
+            margin: 20px 0;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .btn {
+            background: linear-gradient(to right, #e84393, #fd79a8);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(232, 67, 147, 0.4);
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(232, 67, 147, 0.6);
+        }
+
+        .password-screen {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+        }
+
+        .password-screen h2 {
+            color: #e84393;
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+        }
+
+        .password-screen p {
+            color: #636e72;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .input-container {
+            position: relative;
+            margin: 30px 0;
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 18px 20px;
+            border: 2px solid #dfe6e9;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            outline: none;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .password-input:focus {
+            border-color: #e84393;
+            box-shadow: 0 0 0 3px rgba(232, 67, 147, 0.2);
+        }
+
+        .password-btn {
+            background: linear-gradient(to right, #0984e3, #00cec9);
+            margin-top: 10px;
+        }
+
+        .error-message {
+            color: #d63031;
+            margin-top: 15px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .show-error {
+            opacity: 1;
+        }
+
+        .message-screen {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .message-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .message-header h2 {
+            color: #e84393;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .message-header p {
+            color: #636e72;
+            font-size: 1.2rem;
+        }
+
+        .message-content {
+            background-color: #fff9fc;
+            border-radius: 15px;
+            padding: 30px;
+            border-left: 5px solid #e84393;
+            margin: 20px 0;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .message-content p {
+            font-size: 1.4rem;
+            line-height: 1.8;
+            color: #2d3436;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .signature {
+            text-align: left;
+            margin-top: 30px;
+            font-weight: bold;
+            color: #e84393;
+            font-size: 1.3rem;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes floatHearts {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; }
+        }
+
+        .animated-heart {
+            position: absolute;
+            font-size: 24px;
+            color: #e84393;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        .message-animation {
+            animation: fadeIn 1.5s ease-out;
+        }
+
+        .heartbeat {
+            animation: heartbeat 1.5s infinite;
+            display: inline-block;
+            margin: 0 10px;
+            color: #e84393;
+        }
+
+        .floating-hearts {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .back-btn {
+            background: linear-gradient(to right, #636e72, #b2bec3);
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 1rem;
+        }
+
+        /* تصميم اسم المطور - زجاجي شفاف */
+        .developer-credit {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+
+        .developer-credit:hover {
+            opacity: 1;
+            transform: translateY(-5px);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 12px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgb(0, 0, 0);
+            font-size: 0.9rem;
+        }
+
+        .glass-effect i {
+            color: #000000;
+            font-size: 1.2rem;
+        }
+
+        .glass-effect strong {
+            color: #000000;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .welcome-screen, .password-screen, .message-screen {
+                padding: 25px;
+            }
+            
+            .welcome-screen h1 {
+                font-size: 2.2rem;
+            }
+            
+            .message-content p {
+                font-size: 1.2rem;
+            }
+            
+            .message-header h2 {
+                font-size: 2rem;
+            }
+            
+            .developer-credit {
+                bottom: 10px;
+                left: 10px;
+            }
+            
+            .glass-effect {
+                padding: 8px 15px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <!-- شاشة الترحيب -->
         <div class="welcome-screen" id="welcomeScreen">
             <div class="hearts">
                 <i class="fas fa-heart heartbeat"></i>
@@ -27,7 +338,6 @@
             <button class="btn" id="enterBtn">ادخل إلى الرسالة</button>
         </div>
 
-        <!-- شاشة كلمة السر -->
         <div class="password-screen" id="passwordScreen">
             <h2>كلمة السر المطلوبة</h2>
             <p>أدخل كلمة السر الصحيحة لقراءة الرسالة</p>
@@ -39,21 +349,23 @@
             <button class="btn back-btn" id="backToWelcome">العودة للترحيب</button>
         </div>
 
-        <!-- شاشة الرسالة -->
         <div class="message-screen" id="messageScreen">
             <div class="floating-hearts" id="floatingHearts"></div>
             <div class="message-header">
-                <h2 id="messageTitle">رسالة خاصة لـ <span id="recipientName">حبيبتي</span></h2>
-                <p>إلى أعز الناس على قلبي...</p>
+                <h2 id="messageTitle">رسالة خاصة لـ <span id="recipientName">مس شهد</span></h2>
+                <p>إلى أعز الناس على قلوبنا...</p>
             </div>
             <div class="message-content message-animation">
                 <p id="messageText">
-                    حبيبتي الغالية،<br><br>
-                    كلماتي تقف عاجزة عن وصف ما بداخلي من مشاعر تجاهك. أنت النور الذي يضيء حياتي، والفرحة التي تملأ أيامي. كل لحظة أقضيها معك هي كنز ثمين أحتفظ به في قلبي.<br><br>
-                    شكراً لأنك دوماً بجانبي، شكراً لأنك تجعلينني شخصاً أفضل، شكراً لأنك أنت.<br><br>
-                    أحبك أكثر مما تستطيع الكلمات التعبير عنه، وأتمنى أن نبقى معاً إلى الأبد.
+                    مس شهد الغالية 🤍✨<br><br>
+                    مش عارفين نبدأ منين، لأن الكلام مهما طال مش هيكفي حقك. وجودك في حياتنا كان فرق حقيقي، مش بس كمس عربي، لكن كإنسانة قبل أي حاجة 🌸📚. علمتينا إن العربي مش حفظ وخلاص، العربي إحساس، كلمة في وقتها، ومعنى يعيش جوانا ❤️✍️<br><br>
+                    كنا بنستنى حصتك مش عشان الجدول، لكن عشان الراحة، الضحكة، والطاقة الحلوة اللي بتدخلي بيها الفصل 😊☀️. طريقة شرحك، صبرك علينا، وتشجيعك لينا حتى في أصعب اللحظات… حاجات مش بتتنسي 💖💪<br><br>
+                    بكرة امتحان عربي، ومش هنشوفك غير في ترم تاني، بس حقيقي إحنا داخلين الامتحان وإحنا حاسين إنك معانا، بكلامك، بنصايحك، وبثقتك فينا 🌷📝. لو طلعنا من السنة دي بحاجة غير المنهج، فهي حبنا للعربي وحبنا ليكي 🤍📖<br><br>
+                    شكرًا على كل مرة سمعتي، كل مرة شجعتي، وكل مرة خلّيتي الفصل مكان أدفى وألطف 🌈💞. ربنا يجازيكي عننا كل خير، ويخليكي دايمًا سبب فرحة ونجاح لأي طالب يقابلك 🌟🤲<br><br>
+                    وعد مننا… مهما كبرنا وعدّى الوقت، مس شهد هتفضل اسم جميل في ذاكرتنا ❤️✨<br><br>
+                    وبنتمنى نشوفك دايمًا بخير ونجاح 🌸🌸🌸
                 </p>
-                <div class="signature">مع كل الحب،<br>شخص يحبك كثيراً</div>
+                <div class="signature">— طلابك اللي عمرهم ما هينسوك 💛😊</div>
             </div>
             <div style="text-align: center; margin-top: 30px;">
                 <button class="btn back-btn" id="backToPassword">العودة لشاشة الدخول</button>
@@ -62,13 +374,170 @@
     </div>
 
     <!-- اسم المطور - تصميم زجاجي -->
-<div class="developer-credit">
-    <div class="glass-effect">
-        <i class="fas fa-code"></i>
-        <span>تم التطوير بواسطة: <strong>محمود احمد سعيد</strong></span>
+    <div class="developer-credit">
+        <div class="glass-effect">
+            <i class="fas fa-code"></i>
+            <span>تم التطوير بواسطة: <strong>Hooda</strong></span>
+        </div>
     </div>
-</div>
 
-    <script src="script.js"></script>
+    <script>
+        // عناصر DOM
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const passwordScreen = document.getElementById('passwordScreen');
+        const messageScreen = document.getElementById('messageScreen');
+        const enterBtn = document.getElementById('enterBtn');
+        const submitPasswordBtn = document.getElementById('submitPassword');
+        const passwordInput = document.getElementById('passwordInput');
+        const errorMessage = document.getElementById('errorMessage');
+        const backToWelcomeBtn = document.getElementById('backToWelcome');
+        const backToPasswordBtn = document.getElementById('backToPassword');
+        const floatingHearts = document.getElementById('floatingHearts');
+        const messageText = document.getElementById('messageText');
+        const recipientName = document.getElementById('recipientName');
+
+        // كلمة السر الافتراضية لهذه الرسالة
+        let correctPassword = "Shahd";
+
+        // دالة لقراءة البيانات من الرابط
+        function getDataFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('data');
+            
+            if (dataParam) {
+                try {
+                    // فك تشفير البيانات
+                    const decodedData = decodeURIComponent(atob(dataParam));
+                    const data = JSON.parse(decodedData);
+                    return data;
+                } catch (error) {
+                    console.error('خطأ في قراءة البيانات:', error);
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        // عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlData = getDataFromURL();
+            
+            if (urlData) {
+                // إذا وجدت بيانات في الرابط، تحديث الرسالة واسم الشخص وكلمة السر
+                correctPassword = urlData.password;
+                
+                if (urlData.name) {
+                    recipientName.textContent = urlData.name;
+                }
+                
+                if (urlData.message) {
+                    messageText.innerHTML = urlData.message;
+                }
+                
+                // تحديث عنوان الصفحة
+                document.title = `رسالة لـ ${urlData.name || 'مس شهد'}`;
+                
+                // تخطي شاشة الترحيب والذهاب مباشرة لشاشة كلمة السر
+                welcomeScreen.style.display = 'none';
+                passwordScreen.style.display = 'block';
+            }
+        });
+
+        // الانتقال من شاشة الترحيب إلى شاشة كلمة السر
+        enterBtn.addEventListener('click', function() {
+            welcomeScreen.style.display = 'none';
+            passwordScreen.style.display = 'block';
+            passwordInput.focus();
+        });
+
+        // العودة من شاشة كلمة السر إلى شاشة الترحيب
+        backToWelcomeBtn.addEventListener('click', function() {
+            passwordScreen.style.display = 'none';
+            welcomeScreen.style.display = 'block';
+            passwordInput.value = '';
+            errorMessage.classList.remove('show-error');
+        });
+
+        // العودة من شاشة الرسالة إلى شاشة كلمة السر
+        backToPasswordBtn.addEventListener('click', function() {
+            messageScreen.style.display = 'none';
+            passwordScreen.style.display = 'block';
+            passwordInput.value = '';
+            errorMessage.classList.remove('show-error');
+            stopHeartsAnimation();
+        });
+
+        // التحقق من كلمة السر
+        submitPasswordBtn.addEventListener('click', function() {
+            const userInput = passwordInput.value.trim();
+            
+            if (userInput === correctPassword) {
+                passwordScreen.style.display = 'none';
+                messageScreen.style.display = 'block';
+                startHeartsAnimation();
+                
+                const messageContent = document.querySelector('.message-content');
+                messageContent.classList.remove('message-animation');
+                void messageContent.offsetWidth;
+                messageContent.classList.add('message-animation');
+            } else {
+                errorMessage.classList.add('show-error');
+                passwordInput.style.borderColor = '#d63031';
+                passwordInput.style.boxShadow = '0 0 0 3px rgba(214, 48, 49, 0.2)';
+                
+                setTimeout(() => {
+                    passwordInput.style.borderColor = '#dfe6e9';
+                    passwordInput.style.boxShadow = 'none';
+                }, 2000);
+            }
+        });
+
+        // السماح بإدخال كلمة السر بالضغط على Enter
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                submitPasswordBtn.click();
+            }
+        });
+
+        // دالة لإنشاء قلوب متحركة
+        function startHeartsAnimation() {
+            floatingHearts.innerHTML = '';
+            
+            for (let i = 0; i < 15; i++) {
+                createFloatingHeart(i);
+            }
+        }
+
+        function createFloatingHeart(index) {
+            const heart = document.createElement('div');
+            heart.classList.add('animated-heart');
+            heart.innerHTML = '<i class="fas fa-heart"></i>';
+            
+            const size = Math.random() * 20 + 15;
+            heart.style.fontSize = `${size}px`;
+            
+            const startPosition = Math.random() * 100;
+            heart.style.left = `${startPosition}%`;
+            
+            const delay = Math.random() * 5;
+            const duration = Math.random() * 10 + 10;
+            
+            heart.style.animation = `floatHearts ${duration}s linear ${delay}s infinite`;
+            
+            floatingHearts.appendChild(heart);
+            
+            setTimeout(() => {
+                if (floatingHearts.contains(heart)) {
+                    heart.remove();
+                    createFloatingHeart(index);
+                }
+            }, (duration + delay) * 1000);
+        }
+
+        // إيقاف أنيميشن القلوب
+        function stopHeartsAnimation() {
+            floatingHearts.innerHTML = '';
+        }
+    </script>
 </body>
 </html>
