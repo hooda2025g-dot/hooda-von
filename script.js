@@ -18,7 +18,7 @@ let correctPassword = "Shahd";
 
 // رسائل مختلفة يمكن اختيارها عشوائياً
 const messages = [
-    // الرسالة المخصصة لـ "شهد"
+    // الرسالة المخصصة لـ "شهد" - التي أضفتها
     `مس شهد الغالية 🤍✨<br><br>
     مش عارفين نبدأ منين، لأن الكلام مهما طال مش هيكفي حقك. وجودك في حياتنا كان فرق حقيقي، مش بس كمس عربي، لكن كإنسانة قبل أي حاجة 🌸📚. علمتينا إن العربي مش حفظ وخلاص، العربي إحساس، كلمة في وقتها، ومعنى يعيش جوانا ❤️✍️<br><br>
     كنا بنستنى حصتك مش عشان الجدول، لكن عشان الراحة، الضحكة، والطاقة الحلوة اللي بتدخلي بيها الفصل 😊☀️. طريقة شرحك، صبرك علينا، وتشجيعك لينا حتى في أصعب اللحظات… حاجات مش بتتنسي 💖💪<br><br>
@@ -28,10 +28,6 @@ const messages = [
     وبنتمنى نشوفك دايمًا بخير ونجاح 🌸🌸🌸<br><br>
     — طلابك اللي عمرهم ما هينسوك 💛😊`,
     
-    // رسائل احتياطية (يمكن حذفها إذا أردت)
-    "يا شهد، يا أجمل ما في حياتي،<br><br>أنتِ النور الذي يضيء حياتي والفرحة التي تملأ أيامي. كل لحظة معك هي كنز أحتفظ به في قلبي.<br><br>أحبك أكثر مما تستطيع الكلمات التعبير عنه.",
-    
-    "يا قرة عيني شهد،<br><br>أنتِ هدية الحياة لي، وأعدك بأن أحافظ على هذه الهدية الثمينة طوال عمري.<br><br>حبي لك ينمو كل يوم، وقلبي يتسع دائماً للمزيد من المشاعر تجاهك."
 ];
 
 // دالة لقراءة البيانات من الرابط
@@ -59,33 +55,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (urlData) {
         // إذا وجدت بيانات في الرابط، تحديث الرسالة واسم الشخص وكلمة السر
-        correctPassword = urlData.password || "Shahd";
+        correctPassword = urlData.password;
         
         if (urlData.name) {
             recipientName.textContent = urlData.name;
-        } else {
-            recipientName.textContent = "شهد";
         }
         
         if (urlData.message) {
             messageText.innerHTML = urlData.message;
-        } else {
-            // استخدام الرسالة المخصصة لـ "شهد" (الرسالة الأولى في المصفوفة)
-            messageText.innerHTML = messages[0];
         }
         
         // تحديث عنوان الصفحة
-        document.title = `رسالة لـ ${urlData.name || 'شهد'}`;
+        document.title = `رسالة لـ ${urlData.name || 'حبيبتي'}`;
     } else {
-        // إذا لم توجد بيانات، استخدام إعدادات افتراضية لشهد
-        // استخدام الرسالة المخصصة لـ "شهد"
-        messageText.innerHTML = messages[0];
-        
-        // تعيين الاسم الافتراضي إلى "شهد"
-        recipientName.textContent = "شهد";
-        
-        // تحديث عنوان الصفحة
-        document.title = "رسالة لمس شهد الغالية";
+        // إذا لم توجد بيانات، استخدم رسالة عشوائية
+        const randomIndex = Math.floor(Math.random() * messages.length);
+        messageText.innerHTML = messages[randomIndex];
     }
 });
 
@@ -117,8 +102,7 @@ backToPasswordBtn.addEventListener('click', function() {
 submitPasswordBtn.addEventListener('click', function() {
     const userInput = passwordInput.value.trim();
     
-    // تقبل كلمة السر بحالتين: "Shahd" أو "شهد" أو "مس شهد"
-    if (userInput === correctPassword || userInput === "شهد" || userInput === "مس شهد" || userInput === "مس شهد الغالية") {
+    if (userInput === correctPassword) {
         // إذا كانت كلمة السر صحيحة
         passwordScreen.style.display = 'none';
         messageScreen.style.display = 'block';
@@ -126,11 +110,9 @@ submitPasswordBtn.addEventListener('click', function() {
         
         // إضافة أنيميشن للرسالة
         const messageContent = document.querySelector('.message-content');
-        if (messageContent) {
-            messageContent.classList.remove('message-animation');
-            void messageContent.offsetWidth; // إعادة تدفق لإعادة التشغيل
-            messageContent.classList.add('message-animation');
-        }
+        messageContent.classList.remove('message-animation');
+        void messageContent.offsetWidth; // إعادة تدفق لإعادة التشغيل
+        messageContent.classList.add('message-animation');
     } else {
         // إذا كانت كلمة السر خاطئة
         errorMessage.classList.add('show-error');
@@ -166,14 +148,10 @@ function startHeartsAnimation() {
 function createFloatingHeart(index) {
     const heart = document.createElement('div');
     heart.classList.add('animated-heart');
-    
-    // استخدام الرموز التعبيرية للقلوب بدلاً من أيقونة Font Awesome
-    const hearts = ['❤️', '💖', '💗', '💓', '💞', '💕', '💘', '💝', '🤍', '💜', '🧡', '💛', '💚', '💙'];
-    const randomHeart = hearts[Math.floor(Math.random() * hearts.length)];
-    heart.textContent = randomHeart;
+    heart.innerHTML = '<i class="fas fa-heart"></i>';
     
     // حجم عشوائي للقلب
-    const size = Math.random() * 25 + 20;
+    const size = Math.random() * 20 + 15;
     heart.style.fontSize = `${size}px`;
     
     // موقع بداية عشوائي
@@ -205,28 +183,3 @@ function createFloatingHeart(index) {
 function stopHeartsAnimation() {
     floatingHearts.innerHTML = '';
 }
-
-// إضافة تأثيرات للقلوب عند النقر على زر الدخول
-enterBtn.addEventListener('click', function() {
-    // إضافة تأثير اهتزاز بسيط
-    this.style.transform = 'scale(0.95)';
-    setTimeout(() => {
-        this.style.transform = 'scale(1)';
-    }, 150);
-});
-
-// إضافة تأثير للقلب في شاشة الترحيب
-function animateWelcomeHeart() {
-    const heart = document.querySelector('.heart-icon');
-    if (heart) {
-        setInterval(() => {
-            heart.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                heart.style.transform = 'scale(1)';
-            }, 300);
-        }, 2000);
-    }
-}
-
-// تشغيل تأثير القلب عند تحميل الصفحة
-window.addEventListener('load', animateWelcomeHeart);
