@@ -792,23 +792,27 @@ function botAction(action) {
 
 /* ═══════════════════════════════════════
    SEND ACTION TO BOT
+   الطريقة: deep link ?start=wa_XXXX
+   بيفتح البوت والبوت يعمل الأكشن
+   ويبعت رد في الشات — يشتغل من أي مكان
 ═══════════════════════════════════════ */
 function sendAction(action) {
-  const payload = JSON.stringify({ action, user_id: userId, ts: Date.now() });
   tg?.HapticFeedback?.impactOccurred('medium');
 
-  if (tg?.sendData) {
-    try {
-      tg.sendData(payload);
-      // المينيآب بتنغلق تلقائياً بعد sendData لو اتفتحت من ReplyKeyboard
-      // البوت هيبعت رسالة بالنتيجة في الشات
-    } catch(e) {
-      // sendData مش متاح لو اتفتح من inline button — وضع تجريبي
-      showToast('⚠️ افتح اللوحة من زر القائمة في البوت');
-    }
+  // حول الأكشن لـ deep link parameter
+  // start_123  =>  wa_start_123
+  // stop_123   =>  wa_stop_123
+  // buy_day    =>  wa_buy_day
+  // upload     =>  wa_upload
+  const deepParam = encodeURIComponent('wa_' + action);
+  const botLink = 'https://t.me/' + BOT_USERNAME + '?start=' + deepParam;
+
+  if (tg?.openTelegramLink) {
+    tg.openTelegramLink(botLink);
+  } else if (tg?.openLink) {
+    tg.openLink(botLink);
   } else {
-    // وضع تجريبي (عند الفتح من المتصفح مش من تيليجرام)
-    showToast('✅ ' + action + ' (تجريبي — مش متصل ببوت)');
+    window.open(botLink, '_blank');
   }
 }
 
