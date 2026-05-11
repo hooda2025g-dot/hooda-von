@@ -326,6 +326,20 @@
     animation: spin .6s linear infinite; margin-left: 6px;
     vertical-align: middle;
   }
+
+  /* ── INVITE CARD ── */
+  .invite-card {
+    background: linear-gradient(135deg, rgba(79,142,247,.12), rgba(124,92,191,.12));
+    border: 1px solid rgba(79,142,247,.25);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 12px;
+    cursor: pointer; transition: transform .15s;
+  }
+  .invite-card:active { transform: scale(.97); }
+  .invite-icon { font-size: 32px; }
+  .invite-info { flex:1; }
+  .invite-title { font-size: 14px; font-weight: 700; }
+  .invite-desc  { font-size: 11px; color: var(--sub); margin-top: 3px; }
 </style>
 </head>
 <body>
@@ -428,6 +442,17 @@
     <div class="bot-list" id="homeBotList">
       <div style="height:60px" class="skeleton"></div>
       <div style="height:60px" class="skeleton"></div>
+    </div>
+
+    <!-- زر الدعوة للبوت -->
+    <p class="section-title">انضم للمنصة</p>
+    <div class="invite-card" onclick="openBotInvite()">
+      <div class="invite-icon">🤖</div>
+      <div class="invite-info">
+        <div class="invite-title">دعوة صديق للبوت</div>
+        <div class="invite-desc">@Lido_OneX_bot — شارك البوت مع أصدقائك</div>
+      </div>
+      <div style="color:var(--sub);font-size:18px;">›</div>
     </div>
   </div>
 
@@ -539,11 +564,14 @@
   <!-- PAGE: MARKET -->
   <div class="page" id="page-market">
     <p class="section-title">المتجر</p>
-    <div class="market-grid" id="marketGrid">
-      <div style="height:110px;border-radius:16px" class="skeleton"></div>
-      <div style="height:110px;border-radius:16px" class="skeleton"></div>
-      <div style="height:110px;border-radius:16px" class="skeleton"></div>
-      <div style="height:110px;border-radius:16px" class="skeleton"></div>
+    <!-- المتجر بيتحمل من البوت — لو مفيش listings هيظهر رسالة -->
+    <div id="marketContainer">
+      <div class="market-grid" id="marketGrid">
+        <div style="height:110px;border-radius:16px" class="skeleton"></div>
+        <div style="height:110px;border-radius:16px" class="skeleton"></div>
+        <div style="height:110px;border-radius:16px" class="skeleton"></div>
+        <div style="height:110px;border-radius:16px" class="skeleton"></div>
+      </div>
     </div>
   </div>
 
@@ -585,8 +613,8 @@ const userId    = user.id || 0;
 const userName  = user.first_name || 'مستخدم';
 const initials  = (userName[0] || '؟').toUpperCase();
 
-// اسم البوت — عدّله لو اتغيّر
-const BOT_USERNAME = 'YOUR_BOT_USERNAME';
+// ✅ اسم البوت الصح
+const BOT_USERNAME = 'Lido_OneX_bot';
 
 /* ═══════════════════════════════════════
    USER INFO (من Telegram مباشرة)
@@ -610,7 +638,6 @@ function requestData() {
     const params = new URLSearchParams(window.location.search);
     const d = params.get('d');
     if (d) {
-      // فك الـ base64
       const jsonStr = decodeURIComponent(escape(atob(d.replace(/-/g, '+').replace(/_/g, '/'))));
       const parsed = JSON.parse(jsonStr);
       if (parsed.ok) {
@@ -624,18 +651,18 @@ function requestData() {
   }
 
   // ── fallback: اطلب من البوت يبعت البيانات ──
-  // sendData بتشتغل بس لو الـ WebApp اتفتح من keyboard button
+  // ملاحظة: sendData تشتغل بس لو الـ WebApp اتفتح من ReplyKeyboard button (مش inline button)
   try {
     if (tg?.sendData) {
       tg.sendData(JSON.stringify({ action: 'get_data' }));
     }
   } catch(e) {}
 
-  // ── fallback نهائي: وضع تجريبي ──
+  // ── fallback نهائي ──
   setTimeout(() => {
     if (!dataLoaded) {
       document.getElementById('loadingScreen').classList.add('hidden');
-      showToast('⚠️ تعذر تحميل البيانات — تأكد من فتح اللوحة من البوت');
+      showToast('⚠️ افتح اللوحة من زر القائمة في البوت');
     }
   }, 4000);
 }
@@ -657,7 +684,6 @@ function renderData(d) {
   document.getElementById('storageNums').textContent = d.storage_used + ' / ' + d.storage_limit + ' MB';
   document.getElementById('storageFree').textContent = 'متبقي ' + (d.storage_limit - d.storage_used).toFixed(1) + ' MB';
   document.getElementById('storagePct').textContent  = pct + '%';
-  // لون البار حسب الاستخدام
   const fill = document.getElementById('storageFill');
   if (pct >= 90) fill.style.background = 'linear-gradient(90deg,#ef4444,#dc2626)';
   else if (pct >= 70) fill.style.background = 'linear-gradient(90deg,#f59e0b,#d97706)';
@@ -666,6 +692,18 @@ function renderData(d) {
   // Bot lists
   renderBotList('homeBotList', d.bots.slice(0, 3));
   renderBotList('fullBotList', d.bots);
+
+  // Market — لو فيه بيانات من البوت
+  if (d.market && d.market.length > 0) {
+    renderMarket(d.market);
+  } else {
+    // لو مفيش listings، اظهر رسالة فاضية مناسبة
+    document.getElementById('marketGrid').innerHTML =
+      `<div class="empty" style="grid-column:1/-1">
+        <div class="empty-icon">🛒</div>
+        <p>لا توجد بوتات معروضة للبيع حالياً</p>
+      </div>`;
+  }
 
   // Profile
   const subTxt = d.subscription && d.subscription !== 'لا يوجد' ? '✅ ' + d.subscription : '❌ غير مشترك';
@@ -678,6 +716,7 @@ function renderData(d) {
 
   // Referral
   if (user.username) document.getElementById('refLink').textContent = 'https://t.me/' + BOT_USERNAME + '?start=ref_' + userId;
+  else document.getElementById('refLink').textContent = 'https://t.me/' + BOT_USERNAME + '?start=ref_' + userId;
   const refPct = Math.min(100, Math.round((d.referrals || 0) / 50 * 100));
   document.getElementById('refPct').textContent = (d.referrals || 0) + ' / 50';
   setTimeout(() => { document.getElementById('refFill').style.width = refPct + '%'; }, 400);
@@ -707,6 +746,16 @@ function renderBotList(containerId, bots) {
     </div>`).join('');
 }
 
+function renderMarket(items) {
+  document.getElementById('marketGrid').innerHTML = items.map((m, i) => `
+    <div class="market-card" style="animation-delay:${i*.08}s" onclick="sendAction('buy_market_${m.id || i}')">
+      <div class="market-icon">${m.icon || '🤖'}</div>
+      <div class="market-name">${escHtml(m.name || 'بوت')}</div>
+      <div class="market-price">${m.price} ج.م</div>
+      <div class="market-seller">البائع: ${escHtml(m.seller || '—')}</div>
+    </div>`).join('');
+}
+
 /* ═══════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════ */
@@ -716,7 +765,6 @@ function goPage(id, el) {
   document.getElementById('page-' + id).classList.add('active');
   if (el) el.classList.add('active');
   tg?.HapticFeedback?.selectionChanged();
-  if (id === 'market') loadMarket();
 }
 
 /* ═══════════════════════════════════════
@@ -738,7 +786,7 @@ function closeSheet() {
 }
 function botAction(action) {
   closeSheet();
-  // botAction بتبعت format: start_123 / stop_123 / restart_123 ...
+  // البوت بيستقبل: start_123 / stop_123 / restart_123 / maintenance_123 / logs_123
   sendAction(action + '_' + activeBotId);
 }
 
@@ -749,12 +797,15 @@ function sendAction(action) {
   const payload = JSON.stringify({ action, user_id: userId, ts: Date.now() });
   tg?.HapticFeedback?.impactOccurred('medium');
 
-  // كل الأكشنز بتتبعت لـ sendData
-  // ملاحظة: sendData بتشتغل بس لو فُتحت من keyboard button
   if (tg?.sendData) {
-    tg.sendData(payload);
-    // Mini App بتنغلق تلقائياً بعد sendData
-    // البوت هيبعت رسالة بالنتيجة في الشات
+    try {
+      tg.sendData(payload);
+      // المينيآب بتنغلق تلقائياً بعد sendData لو اتفتحت من ReplyKeyboard
+      // البوت هيبعت رسالة بالنتيجة في الشات
+    } catch(e) {
+      // sendData مش متاح لو اتفتح من inline button — وضع تجريبي
+      showToast('⚠️ افتح اللوحة من زر القائمة في البوت');
+    }
   } else {
     // وضع تجريبي (عند الفتح من المتصفح مش من تيليجرام)
     showToast('✅ ' + action + ' (تجريبي — مش متصل ببوت)');
@@ -762,22 +813,15 @@ function sendAction(action) {
 }
 
 /* ═══════════════════════════════════════
-   MARKET
+   INVITE BUTTON
 ═══════════════════════════════════════ */
-function loadMarket() {
-  const items = [
-    { name:'بوت توصيل', price:'120 ج.م', seller:'Ahmed', icon:'🛵' },
-    { name:'بوت تصويت', price:'80 ج.م',  seller:'Omar',  icon:'📊' },
-    { name:'بوت ألعاب', price:'200 ج.م', seller:'Sara',  icon:'🎮' },
-    { name:'بوت تعليم', price:'150 ج.م', seller:'Nour',  icon:'📚' },
-  ];
-  document.getElementById('marketGrid').innerHTML = items.map((m, i) => `
-    <div class="market-card" style="animation-delay:${i*.08}s" onclick="sendAction('buy_market')">
-      <div class="market-icon">${m.icon}</div>
-      <div class="market-name">${m.name}</div>
-      <div class="market-price">${m.price}</div>
-      <div class="market-seller">البائع: ${m.seller}</div>
-    </div>`).join('');
+function openBotInvite() {
+  const link = 'https://t.me/' + BOT_USERNAME;
+  if (tg?.openTelegramLink) {
+    tg.openTelegramLink(link);
+  } else {
+    window.open(link, '_blank');
+  }
 }
 
 /* ═══════════════════════════════════════
@@ -803,7 +847,16 @@ function showToast(msg) {
 
 function copyRef() {
   const text = document.getElementById('refLink').textContent;
-  navigator.clipboard?.writeText(text).then(() => showToast('✅ تم نسخ رابط الدعوة!'));
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast('✅ تم نسخ رابط الدعوة!'));
+  } else {
+    // fallback للمتصفحات القديمة
+    const inp = document.createElement('input');
+    inp.value = text; document.body.appendChild(inp);
+    inp.select(); document.execCommand('copy');
+    document.body.removeChild(inp);
+    showToast('✅ تم نسخ رابط الدعوة!');
+  }
   tg?.HapticFeedback?.notificationOccurred('success');
 }
 
@@ -815,22 +868,6 @@ function escHtml(str) {
    INIT
 ═══════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', () => {
-  // ── استقبال ردود البوت بعد الأكشنز (data_update) ──
-  // البوت بيبعت رسالة JSON بعد كل start/stop/restart
-  // الـ Telegram WebApp بيستقبلها عبر onEvent message_received
-  if (tg) {
-    tg.onEvent('message_received', (msg) => {
-      try {
-        const data = JSON.parse(msg.text || msg);
-        if (data && data.ok && data.type === 'data_update') {
-          dataLoaded = true;
-          renderData(data);
-          if (data.msg) showToast(data.msg);
-        }
-      } catch(e) {}
-    });
-  }
-
   requestData();
 });
 </script>
