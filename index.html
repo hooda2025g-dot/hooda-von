@@ -606,44 +606,27 @@ document.getElementById('profId').textContent   = 'ID: ' + (userId || '—');
 let dataLoaded = false;
 
 function requestData() {
-  if (!tg?.sendData) {
-    // وضع تجريبي خارج تيليجرام
-    renderData({
-      bots: [
-        { id:1, name:'بوت تجريبي', username:'test_bot', status:'running',  in_maintenance:false, icon:'🤖' },
-        { id:2, name:'بوت آخر',    username:'demo_bot', status:'stopped',  in_maintenance:false, icon:'🎯' },
-      ],
-      storage_used: 8.5, storage_limit: 20,
-      referrals: 5, subscription: 'شهري',
-      sub_end: '2026-06-01', deposits: 200,
-      join_date: '2025-01-15', vip_level: 1,
-    });
-    return;
-  }
-  // إرسال طلب البيانات للبوت
-  tg.sendData(JSON.stringify({ action: 'get_data', user_id: userId, ts: Date.now() }));
-}
-
-// استقبال رد البوت (البوت بيبعت JSON message)
-if (tg) {
-  tg.onEvent('message_received', (msg) => {
-    try {
-      const d = JSON.parse(msg?.text || '{}');
-      if (d.ok && !dataLoaded) {
+  // ── قراءة البيانات الحقيقية من الـ URL hash (بعتها البوت) ──
+  try {
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      const d = JSON.parse(decodeURIComponent(hash));
+      if (d.ok) {
         dataLoaded = true;
         renderData(d);
+        return;
       }
-    } catch(e) {}
-  });
-
-  // fallback: لو البوت بعت بيانات عبر initData
-  try {
-    const startParam = tg.initDataUnsafe?.start_param;
-    if (startParam) {
-      const d = JSON.parse(decodeURIComponent(startParam));
-      if (d.ok) { dataLoaded = true; renderData(d); }
     }
   } catch(e) {}
+
+  // ── fallback: لو مفيش hash، وضع تجريبي ──
+  renderData({
+    bots: [],
+    storage_used: 0, storage_limit: 20,
+    referrals: 0, subscription: 'لا يوجد',
+    sub_end: '—', deposits: 0,
+    join_date: '—', vip_level: 0,
+  });
 }
 
 /* ═══════════════════════════════════════
