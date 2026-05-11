@@ -1,543 +1,830 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رسالة سرية</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>لوحة التحكم</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #090b13;
+    --surface:   #111827;
+    --surface2:  #1c2333;
+    --border:    rgba(255,255,255,0.07);
+    --accent:    #4f8ef7;
+    --accent2:   #7c5cbf;
+    --green:     #22c55e;
+    --red:       #ef4444;
+    --yellow:    #f59e0b;
+    --text:      #f0f4ff;
+    --sub:       #8b9ab8;
+    --radius:    16px;
+    --radius-sm: 10px;
+  }
 
-        body {
-            background: linear-gradient(135deg, #ffafbd, #ffc3a0);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow-x: hidden;
-            color: #333;
-        }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
-        .container {
-            width: 100%;
-            max-width: 800px;
-            padding: 20px;
-        }
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: 80px;
+  }
 
-        .welcome-screen {
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            transition: all 0.5s ease;
-        }
+  body::before {
+    content:'';
+    position:fixed; inset:0; z-index:0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(79,142,247,.12) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 50% at 80% 80%, rgba(124,92,191,.10) 0%, transparent 70%);
+    pointer-events:none;
+  }
 
-        .welcome-screen h1 {
-            color: #e84393;
-            font-size: 2.8rem;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-        }
+  /* ── HEADER ── */
+  .header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(9,11,19,.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .header-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900; flex-shrink: 0;
+    box-shadow: 0 0 0 2px rgba(79,142,247,.3);
+  }
+  .header-info { flex: 1; min-width: 0; }
+  .header-name { font-size: 15px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .header-status { font-size: 11px; color: var(--sub); margin-top: 1px; }
+  .header-badge {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; font-size: 10px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px; white-space: nowrap;
+  }
 
-        .welcome-screen p {
-            font-size: 1.3rem;
-            color: #636e72;
-            margin-bottom: 30px;
-            line-height: 1.6;
-        }
+  /* ── LOADING SCREEN ── */
+  .loading-screen {
+    position: fixed; inset: 0; z-index: 999;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 20px;
+  }
+  .loading-screen.hidden { display: none; }
+  .loader {
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 3px solid var(--surface2);
+    border-top-color: var(--accent);
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 14px; color: var(--sub); }
 
-        .welcome-screen .hearts {
-            font-size: 2rem;
-            color: #fd79a8;
-            margin: 20px 0;
-            animation: float 3s ease-in-out infinite;
-        }
+  /* ── CONTENT ── */
+  .content { position: relative; z-index: 1; padding: 16px; }
 
-        .btn {
-            background: linear-gradient(to right, #e84393, #fd79a8);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(232, 67, 147, 0.4);
-            font-weight: bold;
-        }
+  .section-title {
+    font-size: 12px; font-weight: 700; color: var(--sub);
+    text-transform: uppercase; letter-spacing: 1.5px;
+    margin: 20px 0 10px;
+  }
 
-        .btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(232, 67, 147, 0.6);
-        }
+  /* ── STATS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px; position: relative; overflow: hidden;
+    animation: fadeUp .5s ease both;
+  }
+  .stat-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background: var(--card-color, linear-gradient(90deg, var(--accent), var(--accent2)));
+  }
+  .stat-icon { font-size: 22px; margin-bottom: 8px; }
+  .stat-val { font-size: 26px; font-weight: 900; color: var(--text); line-height: 1; }
+  .stat-label { font-size: 11px; color: var(--sub); margin-top: 4px; }
 
-        .password-screen {
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            display: none;
-        }
+  /* ── STORAGE ── */
+  .storage-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px;
+    animation: fadeUp .55s ease both;
+  }
+  .storage-header { display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; }
+  .storage-title { font-size: 14px; font-weight: 700; }
+  .storage-nums { font-size: 12px; color: var(--sub); }
+  .bar-bg { height: 8px; background: rgba(255,255,255,.08); border-radius: 99px; overflow: hidden; }
+  .bar-fill {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width: 0%; transition: width 1.2s cubic-bezier(.4,0,.2,1);
+  }
+  .storage-footer { display:flex; justify-content:space-between; margin-top:8px; font-size:11px; color:var(--sub); }
 
-        .password-screen h2 {
-            color: #e84393;
-            font-size: 2.2rem;
-            margin-bottom: 15px;
-        }
+  /* ── BOT CARDS ── */
+  .bot-list { display: flex; flex-direction: column; gap: 10px; }
+  .bot-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 16px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: background .2s, transform .15s;
+    animation: fadeUp .5s ease both;
+  }
+  .bot-card:active { transform: scale(.98); background: var(--surface2); }
+  .bot-avatar {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center; font-size: 20px;
+  }
+  .bot-info { flex: 1; min-width: 0; }
+  .bot-name { font-size: 14px; font-weight: 700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .bot-user { font-size: 11px; color: var(--sub); margin-top: 2px; }
+  .bot-status { display:flex; align-items:center; gap:5px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink:0; }
+  .dot.running  { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 1.8s infinite; }
+  .dot.stopped  { background: var(--red); }
+  .dot.maint    { background: var(--yellow); }
+  .status-text { font-size: 11px; font-weight: 600; }
+  .bot-arrow { color: var(--sub); font-size: 18px; }
 
-        .password-screen p {
-            color: #636e72;
-            margin-bottom: 30px;
-            font-size: 1.1rem;
-        }
+  /* ── SHEET ── */
+  .sheet-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  .sheet-overlay.open { opacity: 1; pointer-events: all; }
+  .sheet {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 101;
+    background: var(--surface); border-radius: 24px 24px 0 0;
+    padding: 0 20px 30px;
+    transform: translateY(100%);
+    transition: transform .3s cubic-bezier(.32,1.25,.6,1);
+    max-height: 75vh; overflow-y: auto;
+  }
+  .sheet.open { transform: translateY(0); }
+  .sheet-handle { width: 40px; height: 4px; background: var(--border); border-radius: 99px; margin: 12px auto 20px; }
+  .sheet-bot-header { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+  .sheet-bot-icon { width:52px; height:52px; border-radius:14px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:24px; }
+  .sheet-bot-name { font-size:17px; font-weight:800; }
+  .sheet-bot-user { font-size:12px; color:var(--sub); margin-top:2px; }
+  .ctrl-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
+  .ctrl-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    cursor: pointer; transition: all .15s; color: var(--text); text-decoration: none;
+  }
+  .ctrl-btn:active { transform: scale(.94); }
+  .ctrl-btn .icon { font-size: 22px; }
+  .ctrl-btn .label { font-size: 10px; font-weight: 600; color: var(--sub); text-align:center; }
+  .ctrl-btn.green { border-color: rgba(34,197,94,.3); }
+  .ctrl-btn.green .icon { filter: drop-shadow(0 0 6px var(--green)); }
+  .ctrl-btn.red   { border-color: rgba(239,68,68,.3); }
+  .ctrl-btn.red .icon { filter: drop-shadow(0 0 6px var(--red)); }
+  .ctrl-btn.yellow { border-color: rgba(245,158,11,.3); }
 
-        .input-container {
-            position: relative;
-            margin: 30px 0;
-        }
+  /* ── PROFILE ── */
+  .profile-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+    text-align: center; animation: fadeUp .4s ease both;
+  }
+  .profile-pic {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    margin: 0 auto 12px;
+    display: flex; align-items:center; justify-content:center;
+    font-size: 30px; font-weight: 900;
+    box-shadow: 0 0 0 3px rgba(79,142,247,.3), 0 0 0 6px rgba(79,142,247,.1);
+  }
+  .profile-name { font-size: 18px; font-weight: 800; }
+  .profile-id   { font-size: 12px; color: var(--sub); margin-top: 4px; }
+  .profile-vip  {
+    display: inline-flex; align-items:center; gap:5px;
+    background: linear-gradient(135deg, rgba(79,142,247,.15), rgba(124,92,191,.15));
+    border: 1px solid rgba(79,142,247,.25);
+    border-radius: 99px; padding: 4px 12px;
+    font-size: 12px; font-weight: 700; color: var(--accent);
+    margin-top: 10px;
+  }
+  .info-grid { display: grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:16px; }
+  .info-item { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px; text-align: right; }
+  .info-item-label { font-size: 10px; color: var(--sub); margin-bottom:4px; }
+  .info-item-val   { font-size: 14px; font-weight: 700; }
 
-        .password-input {
-            width: 100%;
-            padding: 18px 20px;
-            border: 2px solid #dfe6e9;
-            border-radius: 50px;
-            font-size: 1.2rem;
-            outline: none;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
+  /* ── PLANS ── */
+  .plan-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 14px;
+    animation: fadeUp .5s ease both; cursor: pointer; transition: border-color .2s, transform .15s;
+  }
+  .plan-card:active { transform:scale(.98); }
+  .plan-card.popular { border-color: rgba(79,142,247,.4); }
+  .plan-icon { font-size:28px; width:48px; text-align:center; }
+  .plan-info { flex:1; }
+  .plan-name  { font-size:15px; font-weight:700; }
+  .plan-desc  { font-size:11px; color:var(--sub); margin-top:3px; }
+  .plan-badge { background: linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; font-size:9px; font-weight:700; padding:2px 8px; border-radius:99px; margin-right:6px; }
+  .plan-price { font-size:14px; font-weight:800; color:var(--accent); white-space:nowrap; }
 
-        .password-input:focus {
-            border-color: #e84393;
-            box-shadow: 0 0 0 3px rgba(232, 67, 147, 0.2);
-        }
+  /* ── NAV ── */
+  .nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    background: rgba(9,11,19,.92); backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex; padding: 6px 8px 10px;
+  }
+  .nav-item {
+    flex: 1; display:flex; flex-direction:column; align-items:center;
+    gap: 3px; padding: 6px 4px; border-radius: 10px;
+    cursor:pointer; transition: all .2s; color: var(--sub); font-size:9px; font-weight:600;
+  }
+  .nav-item:active { transform:scale(.9); }
+  .nav-item .nav-icon { font-size:20px; transition:transform .2s; }
+  .nav-item.active { color: var(--accent); }
+  .nav-item.active .nav-icon { transform:scale(1.15); }
 
-        .password-btn {
-            background: linear-gradient(to right, #0984e3, #00cec9);
-            margin-top: 10px;
-        }
+  /* ── UPLOAD BTN ── */
+  .upload-btn {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; border-radius: var(--radius);
+    padding: 16px; text-align:center; cursor:pointer;
+    font-size:15px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    margin-bottom:14px;
+    box-shadow: 0 8px 24px rgba(79,142,247,.25);
+    transition: transform .15s, box-shadow .15s;
+    animation: fadeUp .35s ease both;
+  }
+  .upload-btn:active { transform:scale(.97); box-shadow:0 4px 12px rgba(79,142,247,.2); }
 
-        .error-message {
-            color: #d63031;
-            margin-top: 15px;
-            font-weight: bold;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
+  /* ── EMPTY ── */
+  .empty { text-align:center; padding:40px 20px; color:var(--sub); animation:fadeUp .4s ease; }
+  .empty-icon { font-size:48px; margin-bottom:12px; }
+  .empty p { font-size:14px; }
 
-        .show-error {
-            opacity: 1;
-        }
+  /* ── TOAST ── */
+  .toast {
+    position:fixed; top:70px; left:50%; transform:translateX(-50%) translateY(-20px);
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:99px; padding:8px 20px;
+    font-size:13px; font-weight:600;
+    opacity:0; transition:all .3s; z-index:200; white-space:nowrap;
+    backdrop-filter:blur(10px);
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 
-        .message-screen {
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            display: none;
-            position: relative;
-            overflow: hidden;
-        }
+  /* ── SKELETON ── */
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite; border-radius: 8px;
+  }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-        .message-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+  /* ── PAGES ── */
+  .page { display:none; animation: fadeUp .35s ease; }
+  .page.active { display:block; }
 
-        .message-header h2 {
-            color: #e84393;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
+  /* ── KEYFRAMES ── */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pulse { 0%,100% { opacity:1; box-shadow:0 0 4px var(--green); } 50% { opacity:.6; box-shadow:0 0 10px var(--green); } }
 
-        .message-header p {
-            color: #636e72;
-            font-size: 1.2rem;
-        }
+  /* ── REFERRAL ── */
+  .ref-card { background: var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; animation:fadeUp .4s ease both; }
+  .ref-link-box { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 14px; display:flex; align-items:center; gap:10px; margin-top:14px; }
+  .ref-link-text { flex:1; font-size:12px; color:var(--sub); word-break:break-all; }
+  .copy-btn { background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:8px; padding:6px 12px; font-size:12px; font-weight:700; color:#fff; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:transform .15s; }
+  .copy-btn:active { transform:scale(.93); }
+  .progress-wrap { margin-top:16px; }
+  .progress-label { display:flex; justify-content:space-between; font-size:12px; margin-bottom:8px; }
+  .progress-label span:last-child { color:var(--accent); font-weight:700; }
 
-        .message-content {
-            background-color: #fff9fc;
-            border-radius: 15px;
-            padding: 30px;
-            border-left: 5px solid #e84393;
-            margin: 20px 0;
-            position: relative;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
+  /* ── MARKET ── */
+  .market-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .market-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; animation:fadeUp .5s ease both; cursor:pointer; transition:transform .15s; }
+  .market-card:active { transform:scale(.96); }
+  .market-icon { font-size:28px; margin-bottom:8px; }
+  .market-name { font-size:13px; font-weight:700; }
+  .market-price{ font-size:12px; color:var(--accent); font-weight:700; margin-top:4px; }
+  .market-seller{ font-size:10px; color:var(--sub); margin-top:3px; }
 
-        .message-content p {
-            font-size: 1.4rem;
-            line-height: 1.8;
-            color: #2d3436;
-            text-align: center;
-            font-style: italic;
-        }
-
-        .signature {
-            text-align: left;
-            margin-top: 30px;
-            font-weight: bold;
-            color: #e84393;
-            font-size: 1.3rem;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes heartbeat {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes floatHearts {
-            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; }
-        }
-
-        .animated-heart {
-            position: absolute;
-            font-size: 24px;
-            color: #e84393;
-            opacity: 0;
-            z-index: 1;
-        }
-
-        .message-animation {
-            animation: fadeIn 1.5s ease-out;
-        }
-
-        .heartbeat {
-            animation: heartbeat 1.5s infinite;
-            display: inline-block;
-            margin: 0 10px;
-            color: #e84393;
-        }
-
-        .floating-hearts {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .back-btn {
-            background: linear-gradient(to right, #636e72, #b2bec3);
-            margin-top: 20px;
-            padding: 12px 30px;
-            font-size: 1rem;
-        }
-
-        /* تصميم اسم المطور - زجاجي شفاف */
-        .developer-credit {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 1000;
-            opacity: 0.8;
-            transition: all 0.3s ease;
-        }
-
-        .developer-credit:hover {
-            opacity: 1;
-            transform: translateY(-5px);
-        }
-
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 12px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: rgb(0, 0, 0);
-            font-size: 0.9rem;
-        }
-
-        .glass-effect i {
-            color: #000000;
-            font-size: 1.2rem;
-        }
-
-        .glass-effect strong {
-            color: #000000;
-            font-weight: bold;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-            
-            .welcome-screen, .password-screen, .message-screen {
-                padding: 25px;
-            }
-            
-            .welcome-screen h1 {
-                font-size: 2.2rem;
-            }
-            
-            .message-content p {
-                font-size: 1.2rem;
-            }
-            
-            .message-header h2 {
-                font-size: 2rem;
-            }
-            
-            .developer-credit {
-                bottom: 10px;
-                left: 10px;
-            }
-            
-            .glass-effect {
-                padding: 8px 15px;
-                font-size: 0.8rem;
-            }
-        }
-    </style>
+  /* ── ACTION LOADING ── */
+  .action-spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin .6s linear infinite; margin-left: 6px;
+    vertical-align: middle;
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="welcome-screen" id="welcomeScreen">
-            <div class="hearts">
-                <i class="fas fa-heart heartbeat"></i>
-                <i class="fas fa-heart heartbeat"></i>
-                <i class="fas fa-heart heartbeat"></i>
-            </div>
-            <h1>أهلاً وسهلاً بك!</h1>
-            <p>هذا الموقع يحتوي على رسالة خاصة جداً موجهة لشخص عزيز</p>
-            <p>ستحتاج إلى كلمة السر الصحيحة لقراءة هذه الرسالة</p>
-            <div class="hearts">
-                <i class="fas fa-heart heartbeat"></i>
-                <i class="fas fa-heart heartbeat"></i>
-                <i class="fas fa-heart heartbeat"></i>
-            </div>
-            <button class="btn" id="enterBtn">ادخل إلى الرسالة</button>
-        </div>
 
-        <div class="password-screen" id="passwordScreen">
-            <h2>كلمة السر المطلوبة</h2>
-            <p>أدخل كلمة السر الصحيحة لقراءة الرسالة</p>
-            <div class="input-container">
-                <input type="text" class="password-input" id="passwordInput" placeholder="أدخل كلمة السر هنا...">
-            </div>
-            <button class="btn password-btn" id="submitPassword">عرض الرسالة</button>
-            <p class="error-message" id="errorMessage">كلمة السر غير صحيحة، حاول مرة أخرى!</p>
-            <button class="btn back-btn" id="backToWelcome">العودة للترحيب</button>
-        </div>
+<!-- LOADING SCREEN -->
+<div class="loading-screen" id="loadingScreen">
+  <div class="loader"></div>
+  <div class="loading-text">جاري تحميل بياناتك...</div>
+</div>
 
-        <div class="message-screen" id="messageScreen">
-            <div class="floating-hearts" id="floatingHearts"></div>
-            <div class="message-header">
-                <h2 id="messageTitle">رسالة خاصة لـ <span id="recipientName">مس شهد</span></h2>
-                <p>إلى أعز الناس على قلوبنا...</p>
-            </div>
-            <div class="message-content message-animation">
-                <p id="messageText">
-                    مس شهد الغالية 🤍✨<br><br>
-                    مش عارفين نبدأ منين، لأن الكلام مهما طال مش هيكفي حقك. وجودك في حياتنا كان فرق حقيقي، مش بس كمس عربي، لكن كإنسانة قبل أي حاجة 🌸📚. علمتينا إن العربي مش حفظ وخلاص، العربي إحساس، كلمة في وقتها، ومعنى يعيش جوانا ❤️✍️<br><br>
-                    كنا بنستنى حصتك مش عشان الجدول، لكن عشان الراحة، الضحكة، والطاقة الحلوة اللي بتدخلي بيها الفصل 😊☀️. طريقة شرحك، صبرك علينا، وتشجيعك لينا حتى في أصعب اللحظات… حاجات مش بتتنسي 💖💪<br><br>
-                    بكرة امتحان عربي، ومش هنشوفك غير في ترم تاني، بس حقيقي إحنا داخلين الامتحان وإحنا حاسين إنك معانا، بكلامك، بنصايحك، وبثقتك فينا 🌷📝. لو طلعنا من السنة دي بحاجة غير المنهج، فهي حبنا للعربي وحبنا ليكي 🤍📖<br><br>
-                    شكرًا على كل مرة سمعتي، كل مرة شجعتي، وكل مرة خلّيتي الفصل مكان أدفى وألطف 🌈💞. ربنا يجازيكي عننا كل خير، ويخليكي دايمًا سبب فرحة ونجاح لأي طالب يقابلك 🌟🤲<br><br>
-                    وعد مننا… مهما كبرنا وعدّى الوقت، مس شهد هتفضل اسم جميل في ذاكرتنا ❤️✨<br><br>
-                    وبنتمنى نشوفك دايمًا بخير ونجاح 🌸🌸🌸
-                </p>
-                <div class="signature">— طلابك اللي عمرهم ما هينسوك 💛😊</div>
-            </div>
-            <div style="text-align: center; margin-top: 30px;">
-                <button class="btn back-btn" id="backToPassword">العودة لشاشة الدخول</button>
-            </div>
-        </div>
+<!-- HEADER -->
+<div class="header">
+  <div class="header-avatar" id="hAvatar">؟</div>
+  <div class="header-info">
+    <div class="header-name" id="hName">جاري التحميل...</div>
+    <div class="header-status">منصة الاستضافة الاحترافية</div>
+  </div>
+  <div class="header-badge" id="hBadge">مجاني</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- SHEET OVERLAY -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
+<div class="sheet" id="botSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-bot-header">
+    <div class="sheet-bot-icon" id="sheetIcon">🤖</div>
+    <div>
+      <div class="sheet-bot-name" id="sheetName">—</div>
+      <div class="sheet-bot-user" id="sheetUser">—</div>
+    </div>
+  </div>
+  <div class="ctrl-grid">
+    <div class="ctrl-btn green" id="btnStart" onclick="botAction('start')">
+      <span class="icon">▶️</span><span class="label">تشغيل</span>
+    </div>
+    <div class="ctrl-btn red" id="btnStop" onclick="botAction('stop')">
+      <span class="icon">🛑</span><span class="label">إيقاف</span>
+    </div>
+    <div class="ctrl-btn" onclick="botAction('restart')">
+      <span class="icon">🔄</span><span class="label">إعادة تشغيل</span>
+    </div>
+    <div class="ctrl-btn yellow" onclick="botAction('maintenance')">
+      <span class="icon">🔧</span><span class="label">صيانة</span>
+    </div>
+    <div class="ctrl-btn" onclick="botAction('logs')">
+      <span class="icon">📄</span><span class="label">السجلات</span>
+    </div>
+    <div class="ctrl-btn" onclick="closeSheet()">
+      <span class="icon">✖️</span><span class="label">إغلاق</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="content">
+
+  <!-- PAGE: HOME -->
+  <div class="page active" id="page-home">
+    <p class="section-title">نظرة عامة</p>
+    <div class="stats-grid">
+      <div class="stat-card" style="--card-color:linear-gradient(90deg,#4f8ef7,#7c5cbf)">
+        <div class="stat-icon">🤖</div>
+        <div class="stat-val" id="s-total">—</div>
+        <div class="stat-label">إجمالي البوتات</div>
+      </div>
+      <div class="stat-card" style="--card-color:linear-gradient(90deg,#22c55e,#16a34a)">
+        <div class="stat-icon">▶️</div>
+        <div class="stat-val" id="s-running">—</div>
+        <div class="stat-label">يعمل الآن</div>
+      </div>
+      <div class="stat-card" style="--card-color:linear-gradient(90deg,#f59e0b,#d97706)">
+        <div class="stat-icon">💾</div>
+        <div class="stat-val" id="s-storage">—</div>
+        <div class="stat-label">MB مستخدم</div>
+      </div>
+      <div class="stat-card" style="--card-color:linear-gradient(90deg,#ec4899,#db2777)">
+        <div class="stat-icon">🔗</div>
+        <div class="stat-val" id="s-refs">—</div>
+        <div class="stat-label">دعواتي</div>
+      </div>
     </div>
 
-    <!-- اسم المطور - تصميم زجاجي -->
-    <div class="developer-credit">
-        <div class="glass-effect">
-            <i class="fas fa-code"></i>
-            <span>تم التطوير بواسطة: <strong>Hooda</strong></span>
-        </div>
+    <p class="section-title">التخزين</p>
+    <div class="storage-card">
+      <div class="storage-header">
+        <span class="storage-title">📦 المساحة المستخدمة</span>
+        <span class="storage-nums" id="storageNums">— / — MB</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fill" id="storageFill"></div></div>
+      <div class="storage-footer">
+        <span id="storageFree">—</span>
+        <span id="storagePct">—</span>
+      </div>
     </div>
 
-    <script>
-        // عناصر DOM
-        const welcomeScreen = document.getElementById('welcomeScreen');
-        const passwordScreen = document.getElementById('passwordScreen');
-        const messageScreen = document.getElementById('messageScreen');
-        const enterBtn = document.getElementById('enterBtn');
-        const submitPasswordBtn = document.getElementById('submitPassword');
-        const passwordInput = document.getElementById('passwordInput');
-        const errorMessage = document.getElementById('errorMessage');
-        const backToWelcomeBtn = document.getElementById('backToWelcome');
-        const backToPasswordBtn = document.getElementById('backToPassword');
-        const floatingHearts = document.getElementById('floatingHearts');
-        const messageText = document.getElementById('messageText');
-        const recipientName = document.getElementById('recipientName');
+    <p class="section-title">بوتاتي السريعة</p>
+    <div class="bot-list" id="homeBotList">
+      <div style="height:60px" class="skeleton"></div>
+      <div style="height:60px" class="skeleton"></div>
+    </div>
+  </div>
 
-        // كلمة السر الافتراضية لهذه الرسالة
-        let correctPassword = "Shahd";
+  <!-- PAGE: BOTS -->
+  <div class="page" id="page-bots">
+    <div class="upload-btn" onclick="sendAction('upload')">
+      <span>📤</span> رفع بوت جديد
+    </div>
+    <p class="section-title">بوتاتي</p>
+    <div class="bot-list" id="fullBotList">
+      <div style="height:70px" class="skeleton"></div>
+      <div style="height:70px" class="skeleton"></div>
+    </div>
+  </div>
 
-        // دالة لقراءة البيانات من الرابط
-        function getDataFromURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const dataParam = urlParams.get('data');
-            
-            if (dataParam) {
-                try {
-                    // فك تشفير البيانات
-                    const decodedData = decodeURIComponent(atob(dataParam));
-                    const data = JSON.parse(decodedData);
-                    return data;
-                } catch (error) {
-                    console.error('خطأ في قراءة البيانات:', error);
-                    return null;
-                }
-            }
-            return null;
-        }
+  <!-- PAGE: PROFILE -->
+  <div class="page" id="page-profile">
+    <div class="profile-card">
+      <div class="profile-pic" id="profPic">؟</div>
+      <div class="profile-name" id="profName">—</div>
+      <div class="profile-id"   id="profId">ID: —</div>
+      <div class="profile-vip"  id="profVip">⭐ مستوى VIP 0</div>
+      <div class="info-grid">
+        <div class="info-item">
+          <div class="info-item-label">الاشتراك</div>
+          <div class="info-item-val" id="profSub">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-item-label">تاريخ الانتهاء</div>
+          <div class="info-item-val" id="profEnd">—</div>
+        </div>
+        <div class="info-item">
+          <div class="info-item-label">إجمالي الإيداع</div>
+          <div class="info-item-val" id="profDeposits">0 ج.م</div>
+        </div>
+        <div class="info-item">
+          <div class="info-item-label">تاريخ الانضمام</div>
+          <div class="info-item-val" id="profJoin">—</div>
+        </div>
+      </div>
+    </div>
 
-        // عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlData = getDataFromURL();
-            
-            if (urlData) {
-                // إذا وجدت بيانات في الرابط، تحديث الرسالة واسم الشخص وكلمة السر
-                correctPassword = urlData.password;
-                
-                if (urlData.name) {
-                    recipientName.textContent = urlData.name;
-                }
-                
-                if (urlData.message) {
-                    messageText.innerHTML = urlData.message;
-                }
-                
-                // تحديث عنوان الصفحة
-                document.title = `رسالة لـ ${urlData.name || 'مس شهد'}`;
-                
-                // تخطي شاشة الترحيب والذهاب مباشرة لشاشة كلمة السر
-                welcomeScreen.style.display = 'none';
-                passwordScreen.style.display = 'block';
-            }
-        });
+    <p class="section-title">الدعوات</p>
+    <div class="ref-card">
+      <div style="font-size:14px;font-weight:700;">🔗 رابط الدعوة الخاص بك</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:4px;">ادعو أصدقاءك — 50 دعوة = شهر مجاني + VIP 🎁</div>
+      <div class="ref-link-box">
+        <div class="ref-link-text" id="refLink">—</div>
+        <div class="copy-btn" onclick="copyRef()">نسخ</div>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-label">
+          <span>التقدم نحو الجائزة</span>
+          <span id="refPct">0 / 50</span>
+        </div>
+        <div class="bar-bg">
+          <div class="bar-fill" id="refFill" style="background:linear-gradient(90deg,#22c55e,#16a34a)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        // الانتقال من شاشة الترحيب إلى شاشة كلمة السر
-        enterBtn.addEventListener('click', function() {
-            welcomeScreen.style.display = 'none';
-            passwordScreen.style.display = 'block';
-            passwordInput.focus();
-        });
+  <!-- PAGE: PLANS -->
+  <div class="page" id="page-plans">
+    <p class="section-title">باقات الاشتراك</p>
+    <div class="plan-card popular" onclick="sendAction('buy_day')">
+      <div class="plan-icon">☀️</div>
+      <div class="plan-info">
+        <div class="plan-name">يومي</div>
+        <div class="plan-desc">اشتراك ليوم كامل</div>
+      </div>
+      <div class="plan-price">5 ج.م</div>
+    </div>
+    <div class="plan-card" onclick="sendAction('buy_week')">
+      <div class="plan-icon">📅</div>
+      <div class="plan-info">
+        <div class="plan-name"><span class="plan-badge">شائع</span>أسبوعي</div>
+        <div class="plan-desc">7 أيام كاملة</div>
+      </div>
+      <div class="plan-price">25 ج.م</div>
+    </div>
+    <div class="plan-card" onclick="sendAction('buy_month')">
+      <div class="plan-icon">💎</div>
+      <div class="plan-info">
+        <div class="plan-name"><span class="plan-badge">الأفضل</span>شهري</div>
+        <div class="plan-desc">30 يوم + مميزات VIP</div>
+      </div>
+      <div class="plan-price">80 ج.م</div>
+    </div>
+    <div class="plan-card" onclick="sendAction('buy_year')">
+      <div class="plan-icon">👑</div>
+      <div class="plan-info">
+        <div class="plan-name">سنوي</div>
+        <div class="plan-desc">365 يوم — الأوفر</div>
+      </div>
+      <div class="plan-price">700 ج.م</div>
+    </div>
+    <p class="section-title">خطط التخزين الإضافية</p>
+    <div class="plan-card" onclick="sendAction('storage')">
+      <div class="plan-icon">📦</div>
+      <div class="plan-info">
+        <div class="plan-name">مساحة إضافية</div>
+        <div class="plan-desc">50MB – 500MB بأسعار مرنة</div>
+      </div>
+      <div class="plan-price">من 15 ج.م</div>
+    </div>
+  </div>
 
-        // العودة من شاشة كلمة السر إلى شاشة الترحيب
-        backToWelcomeBtn.addEventListener('click', function() {
-            passwordScreen.style.display = 'none';
-            welcomeScreen.style.display = 'block';
-            passwordInput.value = '';
-            errorMessage.classList.remove('show-error');
-        });
+  <!-- PAGE: MARKET -->
+  <div class="page" id="page-market">
+    <p class="section-title">المتجر</p>
+    <div class="market-grid" id="marketGrid">
+      <div style="height:110px;border-radius:16px" class="skeleton"></div>
+      <div style="height:110px;border-radius:16px" class="skeleton"></div>
+      <div style="height:110px;border-radius:16px" class="skeleton"></div>
+      <div style="height:110px;border-radius:16px" class="skeleton"></div>
+    </div>
+  </div>
 
-        // العودة من شاشة الرسالة إلى شاشة كلمة السر
-        backToPasswordBtn.addEventListener('click', function() {
-            messageScreen.style.display = 'none';
-            passwordScreen.style.display = 'block';
-            passwordInput.value = '';
-            errorMessage.classList.remove('show-error');
-            stopHeartsAnimation();
-        });
+</div><!-- /content -->
 
-        // التحقق من كلمة السر
-        submitPasswordBtn.addEventListener('click', function() {
-            const userInput = passwordInput.value.trim();
-            
-            if (userInput === correctPassword) {
-                passwordScreen.style.display = 'none';
-                messageScreen.style.display = 'block';
-                startHeartsAnimation();
-                
-                const messageContent = document.querySelector('.message-content');
-                messageContent.classList.remove('message-animation');
-                void messageContent.offsetWidth;
-                messageContent.classList.add('message-animation');
-            } else {
-                errorMessage.classList.add('show-error');
-                passwordInput.style.borderColor = '#d63031';
-                passwordInput.style.boxShadow = '0 0 0 3px rgba(214, 48, 49, 0.2)';
-                
-                setTimeout(() => {
-                    passwordInput.style.borderColor = '#dfe6e9';
-                    passwordInput.style.boxShadow = 'none';
-                }, 2000);
-            }
-        });
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-item active" onclick="goPage('home',this)">
+    <span class="nav-icon">🏠</span>الرئيسية
+  </div>
+  <div class="nav-item" onclick="goPage('bots',this)">
+    <span class="nav-icon">🤖</span>بوتاتي
+  </div>
+  <div class="nav-item" onclick="goPage('profile',this)">
+    <span class="nav-icon">👤</span>حسابي
+  </div>
+  <div class="nav-item" onclick="goPage('plans',this)">
+    <span class="nav-icon">💎</span>باقات
+  </div>
+  <div class="nav-item" onclick="goPage('market',this)">
+    <span class="nav-icon">🛒</span>المتجر
+  </div>
+</nav>
 
-        // السماح بإدخال كلمة السر بالضغط على Enter
-        passwordInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                submitPasswordBtn.click();
-            }
-        });
+<script>
+/* ═══════════════════════════════════════
+   TELEGRAM MINI APP INIT
+═══════════════════════════════════════ */
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  tg.setHeaderColor('#090b13');
+  tg.setBackgroundColor('#090b13');
+}
 
-        // دالة لإنشاء قلوب متحركة
-        function startHeartsAnimation() {
-            floatingHearts.innerHTML = '';
-            
-            for (let i = 0; i < 15; i++) {
-                createFloatingHeart(i);
-            }
-        }
+const user      = tg?.initDataUnsafe?.user || {};
+const userId    = user.id || 0;
+const userName  = user.first_name || 'مستخدم';
+const initials  = (userName[0] || '؟').toUpperCase();
 
-        function createFloatingHeart(index) {
-            const heart = document.createElement('div');
-            heart.classList.add('animated-heart');
-            heart.innerHTML = '<i class="fas fa-heart"></i>';
-            
-            const size = Math.random() * 20 + 15;
-            heart.style.fontSize = `${size}px`;
-            
-            const startPosition = Math.random() * 100;
-            heart.style.left = `${startPosition}%`;
-            
-            const delay = Math.random() * 5;
-            const duration = Math.random() * 10 + 10;
-            
-            heart.style.animation = `floatHearts ${duration}s linear ${delay}s infinite`;
-            
-            floatingHearts.appendChild(heart);
-            
-            setTimeout(() => {
-                if (floatingHearts.contains(heart)) {
-                    heart.remove();
-                    createFloatingHeart(index);
-                }
-            }, (duration + delay) * 1000);
-        }
+// اسم البوت — عدّله لو اتغيّر
+const BOT_USERNAME = 'YOUR_BOT_USERNAME';
 
-        // إيقاف أنيميشن القلوب
-        function stopHeartsAnimation() {
-            floatingHearts.innerHTML = '';
-        }
-    </script>
+/* ═══════════════════════════════════════
+   USER INFO (من Telegram مباشرة)
+═══════════════════════════════════════ */
+document.getElementById('hAvatar').textContent  = initials;
+document.getElementById('hName').textContent    = userName + (user.last_name ? ' ' + user.last_name : '');
+document.getElementById('profPic').textContent  = initials;
+document.getElementById('profName').textContent = userName + (user.last_name ? ' ' + user.last_name : '');
+document.getElementById('profId').textContent   = 'ID: ' + (userId || '—');
+
+/* ═══════════════════════════════════════
+   جلب البيانات من البوت
+   الـ Mini App تبعت "get_data" للبوت
+   والبوت يرد بـ JSON عبر sendMessage
+   نستقبله عبر onEvent("message_received")
+═══════════════════════════════════════ */
+let dataLoaded = false;
+
+function requestData() {
+  if (!tg?.sendData) {
+    // وضع تجريبي خارج تيليجرام
+    renderData({
+      bots: [
+        { id:1, name:'بوت تجريبي', username:'test_bot', status:'running',  in_maintenance:false, icon:'🤖' },
+        { id:2, name:'بوت آخر',    username:'demo_bot', status:'stopped',  in_maintenance:false, icon:'🎯' },
+      ],
+      storage_used: 8.5, storage_limit: 20,
+      referrals: 5, subscription: 'شهري',
+      sub_end: '2026-06-01', deposits: 200,
+      join_date: '2025-01-15', vip_level: 1,
+    });
+    return;
+  }
+  // إرسال طلب البيانات للبوت
+  tg.sendData(JSON.stringify({ action: 'get_data', user_id: userId, ts: Date.now() }));
+}
+
+// استقبال رد البوت (البوت بيبعت JSON message)
+if (tg) {
+  tg.onEvent('message_received', (msg) => {
+    try {
+      const d = JSON.parse(msg?.text || '{}');
+      if (d.ok && !dataLoaded) {
+        dataLoaded = true;
+        renderData(d);
+      }
+    } catch(e) {}
+  });
+
+  // fallback: لو البوت بعت بيانات عبر initData
+  try {
+    const startParam = tg.initDataUnsafe?.start_param;
+    if (startParam) {
+      const d = JSON.parse(decodeURIComponent(startParam));
+      if (d.ok) { dataLoaded = true; renderData(d); }
+    }
+  } catch(e) {}
+}
+
+/* ═══════════════════════════════════════
+   RENDER DATA
+═══════════════════════════════════════ */
+function renderData(d) {
+  document.getElementById('loadingScreen').classList.add('hidden');
+
+  // Stats
+  countUp('s-total',   d.bots.length);
+  countUp('s-running', d.bots.filter(b => b.status === 'running').length);
+  countUp('s-storage', Math.round(d.storage_used));
+  countUp('s-refs',    d.referrals);
+
+  // Storage bar
+  const pct = Math.min(100, Math.round(d.storage_used / d.storage_limit * 100));
+  document.getElementById('storageNums').textContent = d.storage_used + ' / ' + d.storage_limit + ' MB';
+  document.getElementById('storageFree').textContent = 'متبقي ' + (d.storage_limit - d.storage_used).toFixed(1) + ' MB';
+  document.getElementById('storagePct').textContent  = pct + '%';
+  // لون البار حسب الاستخدام
+  const fill = document.getElementById('storageFill');
+  if (pct >= 90) fill.style.background = 'linear-gradient(90deg,#ef4444,#dc2626)';
+  else if (pct >= 70) fill.style.background = 'linear-gradient(90deg,#f59e0b,#d97706)';
+  setTimeout(() => { fill.style.width = pct + '%'; }, 300);
+
+  // Bot lists
+  renderBotList('homeBotList', d.bots.slice(0, 3));
+  renderBotList('fullBotList', d.bots);
+
+  // Profile
+  const subTxt = d.subscription && d.subscription !== 'لا يوجد' ? '✅ ' + d.subscription : '❌ غير مشترك';
+  document.getElementById('profSub').textContent      = subTxt;
+  document.getElementById('profEnd').textContent      = d.sub_end || '—';
+  document.getElementById('profDeposits').textContent = d.deposits + ' ج.م';
+  document.getElementById('profJoin').textContent     = d.join_date || '—';
+  document.getElementById('profVip').textContent      = '⭐ مستوى VIP ' + (d.vip_level || 0);
+  document.getElementById('hBadge').textContent       = d.subscription && d.subscription !== 'لا يوجد' ? '✅ ' + d.subscription : 'مجاني';
+
+  // Referral
+  if (user.username) document.getElementById('refLink').textContent = 'https://t.me/' + BOT_USERNAME + '?start=ref_' + userId;
+  const refPct = Math.min(100, Math.round((d.referrals || 0) / 50 * 100));
+  document.getElementById('refPct').textContent = (d.referrals || 0) + ' / 50';
+  setTimeout(() => { document.getElementById('refFill').style.width = refPct + '%'; }, 400);
+}
+
+function renderBotList(containerId, bots) {
+  const el = document.getElementById(containerId);
+  if (!bots || !bots.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🤖</div><p>لا توجد بوتات بعد</p></div>`;
+    return;
+  }
+  el.innerHTML = bots.map((b, i) => `
+    <div class="bot-card" style="animation-delay:${i * .07}s"
+         onclick="openSheet(${b.id}, '${escHtml(b.name)}', '${escHtml(b.username || '—')}', '${b.icon || '🤖'}', '${b.status}')">
+      <div class="bot-avatar">${b.icon || '🤖'}</div>
+      <div class="bot-info">
+        <div class="bot-name">${escHtml(b.name)}</div>
+        <div class="bot-user">@${escHtml(b.username || '—')}</div>
+      </div>
+      <div class="bot-status">
+        <div class="dot ${b.in_maintenance ? 'maint' : b.status}"></div>
+        <span class="status-text" style="color:${b.in_maintenance ? 'var(--yellow)' : b.status==='running' ? 'var(--green)' : 'var(--red)'}">
+          ${b.in_maintenance ? 'صيانة' : b.status === 'running' ? 'شغال' : 'متوقف'}
+        </span>
+      </div>
+      <div class="bot-arrow">›</div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════ */
+function goPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  tg?.HapticFeedback?.selectionChanged();
+  if (id === 'market') loadMarket();
+}
+
+/* ═══════════════════════════════════════
+   BOT SHEET
+═══════════════════════════════════════ */
+let activeBotId = null;
+function openSheet(id, name, username, icon, status) {
+  activeBotId = id;
+  document.getElementById('sheetName').textContent = name;
+  document.getElementById('sheetUser').textContent = '@' + username;
+  document.getElementById('sheetIcon').textContent = icon;
+  document.getElementById('sheetOverlay').classList.add('open');
+  document.getElementById('botSheet').classList.add('open');
+  tg?.HapticFeedback?.impactOccurred('light');
+}
+function closeSheet() {
+  document.getElementById('sheetOverlay').classList.remove('open');
+  document.getElementById('botSheet').classList.remove('open');
+}
+function botAction(action) {
+  closeSheet();
+  showToast('⏳ جاري تنفيذ الأمر...');
+  sendAction(action + '_' + activeBotId);
+}
+
+/* ═══════════════════════════════════════
+   SEND ACTION TO BOT
+═══════════════════════════════════════ */
+function sendAction(action) {
+  const payload = JSON.stringify({ action, user_id: userId, ts: Date.now() });
+  tg?.HapticFeedback?.impactOccurred('medium');
+  if (tg?.sendData) {
+    tg.sendData(payload);
+  } else {
+    showToast('✅ ' + action + ' (تجريبي)');
+  }
+}
+
+/* ═══════════════════════════════════════
+   MARKET
+═══════════════════════════════════════ */
+function loadMarket() {
+  const items = [
+    { name:'بوت توصيل', price:'120 ج.م', seller:'Ahmed', icon:'🛵' },
+    { name:'بوت تصويت', price:'80 ج.م',  seller:'Omar',  icon:'📊' },
+    { name:'بوت ألعاب', price:'200 ج.م', seller:'Sara',  icon:'🎮' },
+    { name:'بوت تعليم', price:'150 ج.م', seller:'Nour',  icon:'📚' },
+  ];
+  document.getElementById('marketGrid').innerHTML = items.map((m, i) => `
+    <div class="market-card" style="animation-delay:${i*.08}s" onclick="sendAction('buy_market')">
+      <div class="market-icon">${m.icon}</div>
+      <div class="market-name">${m.name}</div>
+      <div class="market-price">${m.price}</div>
+      <div class="market-seller">البائع: ${m.seller}</div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════ */
+function countUp(id, target) {
+  let cur = 0;
+  const el = document.getElementById(id);
+  const step = Math.ceil(target / 25) || 1;
+  const t = setInterval(() => {
+    cur = Math.min(cur + step, target);
+    el.textContent = cur;
+    if (cur >= target) clearInterval(t);
+  }, 40);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function copyRef() {
+  const text = document.getElementById('refLink').textContent;
+  navigator.clipboard?.writeText(text).then(() => showToast('✅ تم نسخ رابط الدعوة!'));
+  tg?.HapticFeedback?.notificationOccurred('success');
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  // لو بعد 5 ثواني مفيش بيانات، اخفي loading
+  setTimeout(() => {
+    if (!dataLoaded) {
+      document.getElementById('loadingScreen').classList.add('hidden');
+      showToast('⚠️ تعذر تحميل البيانات، أعد المحاولة');
+    }
+  }, 5000);
+
+  requestData();
+});
+</script>
 </body>
 </html>
