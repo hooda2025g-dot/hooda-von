@@ -598,35 +598,46 @@ document.getElementById('profName').textContent = userName + (user.last_name ? '
 document.getElementById('profId').textContent   = 'ID: ' + (userId || '—');
 
 /* ═══════════════════════════════════════
-   جلب البيانات من البوت
-   الـ Mini App تبعت "get_data" للبوت
-   والبوت يرد بـ JSON عبر sendMessage
-   نستقبله عبر onEvent("message_received")
+   جلب البيانات من البيانات الأولية
+   البوت يبعت البيانات في ?d= (base64)
+   وبعد أي أكشن البوت يبعت update_data
 ═══════════════════════════════════════ */
 let dataLoaded = false;
 
 function requestData() {
-  // ── قراءة البيانات الحقيقية من الـ URL hash (بعتها البوت) ──
+  // ── قراءة البيانات من query param ?d= (base64) ──
   try {
-    const hash = window.location.hash.slice(1);
-    if (hash) {
-      const d = JSON.parse(decodeURIComponent(hash));
-      if (d.ok) {
+    const params = new URLSearchParams(window.location.search);
+    const d = params.get('d');
+    if (d) {
+      // فك الـ base64
+      const jsonStr = decodeURIComponent(escape(atob(d.replace(/-/g, '+').replace(/_/g, '/'))));
+      const parsed = JSON.parse(jsonStr);
+      if (parsed.ok) {
         dataLoaded = true;
-        renderData(d);
+        renderData(parsed);
         return;
       }
     }
+  } catch(e) {
+    console.warn('Failed to parse ?d= param:', e);
+  }
+
+  // ── fallback: اطلب من البوت يبعت البيانات ──
+  // sendData بتشتغل بس لو الـ WebApp اتفتح من keyboard button
+  try {
+    if (tg?.sendData) {
+      tg.sendData(JSON.stringify({ action: 'get_data' }));
+    }
   } catch(e) {}
 
-  // ── fallback: لو مفيش hash، وضع تجريبي ──
-  renderData({
-    bots: [],
-    storage_used: 0, storage_limit: 20,
-    referrals: 0, subscription: 'لا يوجد',
-    sub_end: '—', deposits: 0,
-    join_date: '—', vip_level: 0,
-  });
+  // ── fallback نهائي: وضع تجريبي ──
+  setTimeout(() => {
+    if (!dataLoaded) {
+      document.getElementById('loadingScreen').classList.add('hidden');
+      showToast('⚠️ تعذر تحميل البيانات — تأكد من فتح اللوحة من البوت');
+    }
+  }, 4000);
 }
 
 /* ═══════════════════════════════════════
@@ -727,7 +738,7 @@ function closeSheet() {
 }
 function botAction(action) {
   closeSheet();
-  showToast('⏳ جاري تنفيذ الأمر...');
+  // botAction بتبعت format: start_123 / stop_123 / restart_123 ...
   sendAction(action + '_' + activeBotId);
 }
 
@@ -737,10 +748,16 @@ function botAction(action) {
 function sendAction(action) {
   const payload = JSON.stringify({ action, user_id: userId, ts: Date.now() });
   tg?.HapticFeedback?.impactOccurred('medium');
+
+  // كل الأكشنز بتتبعت لـ sendData
+  // ملاحظة: sendData بتشتغل بس لو فُتحت من keyboard button
   if (tg?.sendData) {
     tg.sendData(payload);
+    // Mini App بتنغلق تلقائياً بعد sendData
+    // البوت هيبعت رسالة بالنتيجة في الشات
   } else {
-    showToast('✅ ' + action + ' (تجريبي)');
+    // وضع تجريبي (عند الفتح من المتصفح مش من تيليجرام)
+    showToast('✅ ' + action + ' (تجريبي — مش متصل ببوت)');
   }
 }
 
@@ -798,13 +815,21 @@ function escHtml(str) {
    INIT
 ═══════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', () => {
-  // لو بعد 5 ثواني مفيش بيانات، اخفي loading
-  setTimeout(() => {
-    if (!dataLoaded) {
-      document.getElementById('loadingScreen').classList.add('hidden');
-      showToast('⚠️ تعذر تحميل البيانات، أعد المحاولة');
-    }
-  }, 5000);
+  // ── استقبال ردود البوت بعد الأكشنز (data_update) ──
+  // البوت بيبعت رسالة JSON بعد كل start/stop/restart
+  // الـ Telegram WebApp بيستقبلها عبر onEvent message_received
+  if (tg) {
+    tg.onEvent('message_received', (msg) => {
+      try {
+        const data = JSON.parse(msg.text || msg);
+        if (data && data.ok && data.type === 'data_update') {
+          dataLoaded = true;
+          renderData(data);
+          if (data.msg) showToast(data.msg);
+        }
+      } catch(e) {}
+    });
+  }
 
   requestData();
 });
